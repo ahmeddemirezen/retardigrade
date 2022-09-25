@@ -51,12 +51,12 @@ public class GameManager : MonoBehaviour {
             AudioSource temp;
             if (Instance.TryGetComponent<AudioSource> (out temp)) {
                 temp.loop = false;
-                temp.volume = 0.0f;
+                temp.volume = 0.3f;
                 return temp;
             } else {
                 temp = Instance.gameObject.AddComponent<AudioSource> ();
                 temp.loop = false;
-                temp.volume = 0.0f;
+                temp.volume = 0.3f;
                 return temp;
             }
         }
