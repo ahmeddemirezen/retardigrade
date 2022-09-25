@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fd9c4d2fbaac2054c9bbf720b8628b48, type: 3}
   m_Name: Level1
   m_EditorClassIdentifier: 
-  levelName: test scene
+  levelName: Level 1
   music: {fileID: 8300000, guid: 79ce5b748bcf95049bfd9947db3f2eba, type: 3}
