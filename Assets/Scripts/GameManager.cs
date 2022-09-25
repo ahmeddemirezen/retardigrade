@@ -51,12 +51,12 @@ public class GameManager : MonoBehaviour {
             AudioSource temp;
             if (Instance.TryGetComponent<AudioSource> (out temp)) {
                 temp.loop = false;
-                temp.volume = 0.5f;
+                temp.volume = 0.0f;
                 return temp;
             } else {
                 temp = Instance.gameObject.AddComponent<AudioSource> ();
                 temp.loop = false;
-                temp.volume = 0.5f;
+                temp.volume = 0.0f;
                 return temp;
             }
         }
@@ -83,8 +83,12 @@ public class GameManager : MonoBehaviour {
     public static int glidingDistanceLvl = 1;
 
     public static Player player => FindObjectOfType<Player> ();
+    public static GameObject bullet;
 
-    private void Start () { }
+    private void Start () {
+        bullet = Resources.Load ("Bullet") as GameObject;
+        PoolManager.CreatePool (bullet, 25);
+    }
 
     public static void ChangeGameState (GameState state) {
         gameState = state;
@@ -112,15 +116,15 @@ public class GameManager : MonoBehaviour {
 
     public static void PauseGame () {
         Time.timeScale = 0f;
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
+        // Cursor.visible = true;
+        // Cursor.lockState = CursorLockMode.None;
         ChangeGameState (GameState.PauseMenu);
     }
 
     public static void ResumeGame () {
         Time.timeScale = 1f;
-        Cursor.visible = false;
-        Cursor.lockState = CursorLockMode.Locked;
+        // Cursor.visible = false;
+        // Cursor.lockState = CursorLockMode.Locked;
         ChangeGameState (GameState.InGame);
     }
 
