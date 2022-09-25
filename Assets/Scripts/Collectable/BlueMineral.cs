@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using SUPERCharacter;
 using UnityEngine;
 
 public class BlueMineral : Mineral, IIntractable {

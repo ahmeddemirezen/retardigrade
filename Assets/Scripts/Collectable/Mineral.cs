@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using SUPERCharacter;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -30,8 +29,8 @@ public class Mineral : MonoBehaviour {
 
     protected IEnumerator StartCollect () {
         var instancePlayer = FindObjectOfType<Player> ();
-        var instanceController = FindObjectOfType<SUPERCharacterAIO> ();
-        instanceController.PausePlayer (PauseModes.MakeKinematic);
+        // var instanceController = FindObjectOfType<SUPERCharacterAIO> ();
+        // instanceController.PausePlayer (PauseModes.MakeKinematic);
         OnStart.Invoke ();
         isCollecting = true;
         StartCoroutine (PlayCollectSound ());
@@ -41,7 +40,7 @@ public class Mineral : MonoBehaviour {
             OnUpdate.Invoke ((float) time - i);
             yield return new WaitForSeconds (1f);
         }
-        instanceController.UnpausePlayer ();
+        // instanceController.UnpausePlayer ();
         instancePlayer?.Bite (mineralType, amount);
         Collect ();
         OnEnd.Invoke ();
@@ -50,8 +49,8 @@ public class Mineral : MonoBehaviour {
 
     protected void CancelCollect () {
         StopAllCoroutines ();
-        var instanceController = FindObjectOfType<SUPERCharacterAIO> ();
-        instanceController.UnpausePlayer ();
+        // var instanceController = FindObjectOfType<SUPERCharacterAIO> ();
+        // instanceController.UnpausePlayer ();
         OnEnd.Invoke ();
         isCollecting = false;
     }

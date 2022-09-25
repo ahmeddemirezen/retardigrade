@@ -9,9 +9,11 @@ public class Player : MonoBehaviour, IDamageable {
     public float health = 100f;
     public float bitePower = 10f;
     public float acidPower = 10f;
+    public float fireRate = 5f;
     public float speed = 10f;
     public float glidingDistance = 10f;
     public float degradation = 0.1f;
+
     [Space]
     [Header ("Events")]
     public UnityEvent<float> OnHealthChange;
@@ -24,12 +26,20 @@ public class Player : MonoBehaviour, IDamageable {
     public UnityEvent<float> OnAcidPowerUpgrade;
     public UnityEvent<float> OnSpeedUpgrade;
     public UnityEvent<float> OnGlidingDistanceUpgrade;
+    [Space]
+    [Header ("Other Events")]
+    public UnityEvent<float> OnFireSetup;
+    public UnityEvent<float> OnFire;
+
+    //privates
+    bool isFire = false;
 
     private void Start () {
         OnHealthUpgrade.Invoke (maxHealth);
         OnHealthChange.Invoke (health);
         OnStrengthChange.Invoke (GameManager.strength);
         OnDexterityChange.Invoke (GameManager.dexterity);
+        OnFireSetup.Invoke (fireRate);
         StartCoroutine (Degradation (degradation));
     }
 
@@ -46,13 +56,39 @@ public class Player : MonoBehaviour, IDamageable {
         }
     }
 
+    public void Fire (Vector3 target) {
+        if (isFire) return;
+        StartCoroutine (FireCoolDown ());
+        Bullet bullet = PoolManager.ReuseObject (GameManager.bullet, transform.position, transform.rotation).GetComponent<Bullet> ();
+        Debug.Log (bullet);
+        bullet.transform.position = transform.position;
+        bullet.transform.rotation = transform.rotation;
+        bullet.targetTag = "Enemy";
+        bullet.damage = acidPower;
+        bullet.target = target;
+        bullet.gameObject.SetActive (true);
+        Debug.Log ("Fire");
+    }
+
+    IEnumerator FireCoolDown () {
+        isFire = true;
+        float time = 0;
+        while (time < fireRate) {
+            time += 0.1f;
+            yield return new WaitForSeconds (0.1f);
+            OnFire.Invoke (time);
+        }
+        isFire = false;
+    }
+
     public IEnumerator Degradation (float amount) {
         while (health > 0) {
             TakeDamage (amount);
             yield return new WaitForSeconds (1f);
         }
     }
-
+    // TODO: Implement IDamageable interface
+    bool IDamageable.IsDead => false;
     public void TakeDamage (float amount) {
         health -= amount;
         OnHealthChange.Invoke (health);
