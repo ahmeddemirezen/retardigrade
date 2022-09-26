@@ -56,8 +56,8 @@ public class Player : MonoBehaviour, IDamageable {
         }
     }
 
-    public void Fire (Vector3 target) {
-        if (isFire) return;
+    public bool Fire (Vector3 target) {
+        if (isFire) return false;
         StartCoroutine (FireCoolDown ());
         Bullet bullet = PoolManager.ReuseObject (GameManager.bullet, transform.position, transform.rotation).GetComponent<Bullet> ();
         Debug.Log (bullet);
@@ -67,7 +67,7 @@ public class Player : MonoBehaviour, IDamageable {
         bullet.damage = acidPower;
         bullet.target = target;
         bullet.gameObject.SetActive (true);
-        Debug.Log ("Fire");
+        return true;
     }
 
     IEnumerator FireCoolDown () {

@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class IsometricCameraController : MonoBehaviour {
+    [Header ("Components")]
     public Camera cam;
     public Rigidbody rb;
+    public GameObject body;
+    public Animator anim;
 
+    [Header ("Interaction Settings")]
     public float interactDistance = 5f;
 
+    [Header ("Camera Settings")]
     public float zoomSpeed = 1f;
     public float zoomMin = 1f;
     public float zoomMax = 10f;
@@ -17,10 +22,28 @@ public class IsometricCameraController : MonoBehaviour {
     public float panMax = 10f;
     public float pan = 1f;
 
+    [Header ("Animation Settings")]
+    [Tooltip ("Bool param")]
+    public string IdleState = "Idle";
+    [Tooltip ("Bool param")]
+    public string WalkState = "Walk";
+    [Tooltip ("Bool param")]
+    public string RunState = "Run";
+    [Tooltip ("Trigger param")]
+    public string AttackState = "Attack";
+    [Tooltip ("Bool param")]
+    public string DeathState = "Death";
+    [Tooltip ("Bool param")]
+    public string EatState = "Eat";
+
+    [Header ("Inputs")]
     public KeyCode moveUp = KeyCode.W;
     public KeyCode moveDown = KeyCode.S;
     public KeyCode moveLeft = KeyCode.A;
     public KeyCode moveRight = KeyCode.D;
+    public KeyCode dash = KeyCode.LeftShift;
+    public KeyCode attack = KeyCode.Mouse0;
+    public KeyCode interact = KeyCode.E;
     public KeyCode zoomIn = KeyCode.Q;
     public KeyCode zoomOut = KeyCode.E;
 
@@ -28,34 +51,26 @@ public class IsometricCameraController : MonoBehaviour {
     private Vector3 _mousePositionLastFrame;
     private Vector3 _mousePositionDelta;
 
+    private Vector3 _lookDirection;
+
     private void Start () {
         rb = GetComponent<Rigidbody> ();
     }
 
     private void Update () {
-        if (Input.GetKey (moveUp)) {
-            // transform.position += (Vector3.forward + Vector3.right) * panSpeed * pan * Time.deltaTime;
-            rb.AddForce ((Vector3.forward + Vector3.right) * panSpeed * pan * Time.deltaTime);
-        }
-        if (Input.GetKey (moveDown)) {
-            rb.AddForce ((Vector3.back + Vector3.left) * panSpeed * pan * Time.deltaTime);
-        }
-        if (Input.GetKey (moveLeft)) {
-            // transform.position += (Vector3.forward + Vector3.left) * panSpeed * pan * Time.deltaTime;
-            rb.AddForce ((Vector3.forward + Vector3.left) * panSpeed * pan * Time.deltaTime);
-        }
-        if (Input.GetKey (moveRight)) {
-            // transform.position += (Vector3.back + Vector3.right) * panSpeed * pan * Time.deltaTime;
-            rb.AddForce ((Vector3.back + Vector3.right) * panSpeed * pan * Time.deltaTime);
-        }
+        Move ();
+
         if (Input.GetKey (zoomIn)) {
             zoom -= zoomSpeed * Time.deltaTime;
         }
         if (Input.GetKey (zoomOut)) {
             zoom += zoomSpeed * Time.deltaTime;
         }
-        if (Input.GetMouseButton (0)) {
+        if (Input.GetKey (interact)) {
             Interact ();
+        }
+        if (Input.GetKey (attack)) {
+            Attack ();
         }
 
         zoom = Mathf.Clamp (zoom, zoomMin, zoomMax);
@@ -68,6 +83,62 @@ public class IsometricCameraController : MonoBehaviour {
             transform.position -= _mousePositionDelta * panSpeed * pan * Time.deltaTime;
         }
     }
+    private void Move () {
+        if (Input.GetKey (moveUp) && !Input.GetKey (moveDown) && !Input.GetKey (moveLeft) && !Input.GetKey (moveRight)) {
+            transform.position += (Vector3.forward + Vector3.right) * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 45f, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+        if (Input.GetKey (moveDown) && !Input.GetKey (moveUp) && !Input.GetKey (moveLeft) && !Input.GetKey (moveRight)) {
+            transform.position += (Vector3.back + Vector3.left) * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 225f, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+        if (Input.GetKey (moveLeft) && !Input.GetKey (moveRight) && !Input.GetKey (moveUp) && !Input.GetKey (moveDown)) {
+            transform.position += (Vector3.forward + Vector3.left) * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 315f, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+        if (Input.GetKey (moveRight) && !Input.GetKey (moveLeft) && !Input.GetKey (moveUp) && !Input.GetKey (moveDown)) {
+            transform.position += (Vector3.back + Vector3.right) * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 135f, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+
+        if (Input.GetKey (moveUp) && Input.GetKey (moveLeft)) {
+            transform.position += Vector3.forward * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 0, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+        if (Input.GetKey (moveUp) && Input.GetKey (moveRight)) {
+            transform.position += Vector3.right * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 90f, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+        if (Input.GetKey (moveDown) && Input.GetKey (moveLeft)) {
+            transform.position += Vector3.left * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 270f, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+        if (Input.GetKey (moveDown) && Input.GetKey (moveRight)) {
+            transform.position += Vector3.back * panSpeed * pan * Time.deltaTime;
+            body.transform.eulerAngles = new Vector3 (body.transform.rotation.eulerAngles.x, Mathf.LerpAngle (body.transform.rotation.eulerAngles.y, 180f, 0.1f), body.transform.rotation.eulerAngles.z);
+            anim.SetBool (IdleState, false);
+            anim.SetBool (WalkState, true);
+        }
+
+        if (!Input.GetKey (moveUp) && !Input.GetKey (moveDown) && !Input.GetKey (moveLeft) && !Input.GetKey (moveRight)) {
+            anim.SetBool (IdleState, true);
+            anim.SetBool (WalkState, false);
+        }
+    }
 
     private bool clickable = true;
     private void Interact () {
@@ -78,14 +149,28 @@ public class IsometricCameraController : MonoBehaviour {
             var intractable = hit.collider.GetComponent<IIntractable> ();
             if (intractable != null && Vector3.Distance (transform.position, hit.point) < interactDistance) {
                 intractable.Interact ();
+                anim.SetBool (EatState, true);
                 return;
             }
+        }
+    }
+
+    public void StopEating () {
+        anim.SetBool (EatState, false);
+    }
+
+    private void Attack () {
+        RaycastHit hit;
+        if (Physics.Raycast (cam.ScreenPointToRay (Input.mousePosition), out hit) && clickable) {
+            StartCoroutine (ClickDelay ());
             var damageable = hit.collider.GetComponent<IDamageable> ();
             if (damageable != null) {
-                GameManager.player.Fire (hit.point);
+                if (GameManager.player.Fire (hit.point))
+                    anim.SetTrigger (AttackState);
                 return;
             }
-            GameManager.player.Fire (new Vector3 (hit.point.x, GameManager.player.transform.position.y, hit.point.z));
+            if (GameManager.player.Fire (new Vector3 (hit.point.x, GameManager.player.transform.position.y, hit.point.z)))
+                anim.SetTrigger (AttackState);
         }
     }
 
@@ -93,6 +178,14 @@ public class IsometricCameraController : MonoBehaviour {
         clickable = false;
         yield return new WaitForSeconds (0.1f);
         clickable = true;
+    }
+
+    private void OnCollisionStay (Collision other) {
+        var hitPos = new Vector3 (other.contacts[0].point.x, 0, other.contacts[0].point.z);
+        var myPos = new Vector3 (transform.position.x, 0, transform.position.z);
+        var direction = (myPos - hitPos).normalized;
+        // stops the camera from getting stuck in walls
+        transform.position += direction;
     }
 
     private void OnDrawGizmos () {
